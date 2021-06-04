@@ -1,0 +1,14 @@
+[package]
+name = "drone-plugin-gitea"
+version = "0.1.0-alpha.1"
+edition = "2018"
+authors = ["ljoonal"]
+description = "A drone CI plugin to create a release on gitea and push assets to it."
+license = "Apache-2.0/ISC/MIT"
+repository = "https://github.com/ljoonal/DronePluginGitea"
+readme = "./README.md"
+
+[dependencies]
+attohttpc = { version = "0.17.0", default-features = false, features = ["compress", "json", "tls-rustls"] }
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+serde_json = "1"
