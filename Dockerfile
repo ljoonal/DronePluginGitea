@@ -13,6 +13,6 @@ LABEL org.opencontainers.image.authors="ljoonal"
 
 USER 1000
 
-COPY --from=builder --chown=1000:1000 /usr/local/src/drone-plugin-gitea/target/x86_64-unknown-linux-musl/release/drone-plugin-gitea .
+COPY --from=builder --chown=1000:1000 /usr/local/src/drone-plugin-gitea/target/x86_64-unknown-linux-musl/release/drone-plugin-gitea /bin/drone-plugin-gitea
 
-ENTRYPOINT ["./drone-plugin-gitea"]
+ENTRYPOINT ["/bin/drone-plugin-gitea"]
