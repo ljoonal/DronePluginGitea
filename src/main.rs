@@ -4,6 +4,7 @@
 use attohttpc::header;
 use glob::glob;
 use serde::Deserialize;
+use serde_json::Value;
 use std::env;
 use std::str::FromStr;
 
@@ -13,9 +14,10 @@ const READING_FILE_FAILED: &str = "Reading file failed: ";
 const GLOB_FAILED: &str = "Parsing glob failed: ";
 const CONVERSION_FAILED: &str = "Bytes to string conversion failed: ";
 
-#[derive(Deserialize)]
-struct ResponseWithId {
+#[derive(Deserialize, Debug)]
+struct ReleaseCreatedResponse {
 	pub id: u64,
+	pub url: String,
 }
 
 fn optional_env_var(env_var: &'static str) -> Option<String> {
@@ -34,7 +36,9 @@ fn optional_env_var(env_var: &'static str) -> Option<String> {
 fn auth_request(req: attohttpc::RequestBuilder, api_key: &str) -> attohttpc::RequestBuilder {
 	let user_agent = "drone-plugin-gitea/".to_owned() + VERSION;
 
-	req.header(header::USER_AGENT, &user_agent).bearer_auth(api_key)
+	req.header(header::USER_AGENT, &user_agent)
+		.header(header::ACCEPT, "application/json")
+		.bearer_auth(api_key)
 }
 
 fn filename_to_contents(filename: &str) -> String {
@@ -97,17 +101,15 @@ fn main() {
 	.expect("release creation request failed");
 
 	if !res.is_success() {
-		let status = res.status();
-		let err = res.error_for_status().unwrap_err();
 		panic!(
-			"release creation request wasn't a success, status code {} with error: {}",
-			status, err
+			"release creation request wasn't a success with status {} and response: {:?}",
+			res.status(),
+			res.json::<Value>()
 		);
 	}
 
-	let res_json: ResponseWithId = res
-		.json()
-		.expect("parsing ID from release creation response json failed");
+	let res_json: ReleaseCreatedResponse = res.json().expect("parsing release creation response json failed");
+	println!("Successfully created release: {}", &res_json.url);
 
 	if let Some(asset_globs) = optional_env_var("PLUGIN_ASSETS") {
 		let assets_api_url: String = api_url + "/" + &res_json.id.to_string() + "/assets";
@@ -126,23 +128,24 @@ fn main() {
 		}
 
 		for asset_filename in assets {
+			let filename_str = asset_filename.to_string_lossy();
+
 			let asset_file = std::fs::File::open(&asset_filename)
-				.expect(&(READING_FILE_FAILED.to_owned() + &asset_filename.to_string_lossy()));
+				.expect(&(READING_FILE_FAILED.to_owned() + &filename_str));
 
 			// We wanna validate that we got the ID for the attachment, aka it pretty surely succeeded.
 			let res = auth_request(attohttpc::post(&assets_api_url), &api_key)
 				.file(asset_file)
+				.param("name", &filename_str)
 				.send()
-				.expect(&("asset uploading failed for file ".to_owned() + &asset_filename.to_string_lossy()));
+				.expect(&("asset uploading failed for file ".to_owned() + &filename_str));
 
 			if !res.is_success() {
-				let status = res.status();
-				let err = res.error_for_status().unwrap_err();
 				panic!(
-					"asset uploading failed for file: {}, status is {} with an error of: {}",
+					"asset uploading failed for file: {} with an status {} and response: {:?}",
 					&asset_filename.to_string_lossy(),
-					status,
-					err
+					res.status(),
+					res.json::<Value>()
 				);
 			}
 		}
