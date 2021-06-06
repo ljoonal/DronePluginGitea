@@ -96,7 +96,14 @@ fn main() {
 	.send()
 	.expect("release creation request failed");
 
-	assert!(res.is_success(), "release creation request wasn't a success");
+	if !res.is_success() {
+		let status = res.status();
+		let err = res.error_for_status().unwrap_err();
+		panic!(
+			"release creation request wasn't a success, status code {} with error: {}",
+			status, err
+		);
+	}
 
 	let res_json: ResponseWithId = res
 		.json()
@@ -129,10 +136,13 @@ fn main() {
 				.expect(&("asset uploading failed for file ".to_owned() + &asset_filename.to_string_lossy()));
 
 			if !res.is_success() {
+				let status = res.status();
+				let err = res.error_for_status().unwrap_err();
 				panic!(
-					"asset uploading failed for file: {}, status code is: {}",
+					"asset uploading failed for file: {}, status is {} with an error of: {}",
 					&asset_filename.to_string_lossy(),
-					res.status().as_str()
+					status,
+					err
 				);
 			}
 		}

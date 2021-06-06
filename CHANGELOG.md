@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Glob support for assets
 - Default for gitea url
+- More verbose request errors
 
 ## [0.1.0-alpha.1] - 2021-06-05
 
