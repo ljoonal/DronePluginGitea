@@ -17,3 +17,7 @@ assets:
   - release.tar.gz.sha256
   - release.tar.gz.sha512
 ```
+
+## Todo
+
+- Testing
