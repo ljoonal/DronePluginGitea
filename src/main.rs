@@ -130,15 +130,16 @@ fn main() {
 		for asset_filename in assets {
 			let filename_str = asset_filename.to_string_lossy();
 
-			let asset_file = std::fs::File::open(&asset_filename)
-				.expect(&(READING_FILE_FAILED.to_owned() + &filename_str));
+			let asset_file =
+				std::fs::read(&asset_filename).expect(&("reading asset failed".to_owned() + &filename_str));
 
 			// We wanna validate that we got the ID for the attachment, aka it pretty surely succeeded.
 			let res = auth_request(attohttpc::post(&assets_api_url), &api_key)
-				.file(asset_file)
 				.param("name", &filename_str)
+				.form(&asset_file)
+				.expect(&("form creation failed for asset ".to_owned() + &filename_str))
 				.send()
-				.expect(&("asset uploading failed for file ".to_owned() + &filename_str));
+				.expect(&("uploading failed for asset ".to_owned() + &filename_str));
 
 			if !res.is_success() {
 				panic!(
