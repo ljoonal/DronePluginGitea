@@ -156,6 +156,7 @@ fn main() {
 			let asset_file_contents =
 				std::fs::read(&asset_path).expect(&("reading asset failed".to_owned() + &asset_filename));
 
+			// Gitea is very picky about the multipart asset being called ´attachment´.
 			let file =
 				attohttpc::MultipartFile::new("attachment", &asset_file_contents).with_filename("attachment");
 			let multipart = attohttpc::MultipartBuilder::new()
@@ -163,14 +164,10 @@ fn main() {
 				.build()
 				.expect(&("creating multipart file for asset: ".to_owned() + &asset_filename));
 
-			let req = auth_request(attohttpc::post(&assets_api_url), &api_key)
+			let res = auth_request(attohttpc::post(&assets_api_url), &api_key)
 				.header(header::CONTENT_TYPE, "multipart/form-data")
 				.param("name", &asset_filename)
-				.body(multipart);
-
-			println!("{:?}", req);
-
-			let res = req
+				.body(multipart)
 				.send()
 				.expect(&("uploading failed for asset ".to_owned() + &asset_filename));
 
