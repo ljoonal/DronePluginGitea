@@ -156,8 +156,7 @@ fn main() {
 			let asset_file_contents =
 				std::fs::read(&asset_path).expect(&("reading asset failed".to_owned() + &asset_filename));
 
-			let file = attohttpc::MultipartFile::new(&asset_filename, &asset_file_contents)
-				.with_filename("attachment");
+			let file = attohttpc::MultipartFile::new("attachment", &asset_file_contents);
 			let multipart = attohttpc::MultipartBuilder::new()
 				.with_file(file)
 				.build()
