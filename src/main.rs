@@ -156,10 +156,16 @@ fn main() {
 			let asset_file_contents =
 				std::fs::read(&asset_path).expect(&("reading asset failed".to_owned() + &asset_filename));
 
+			let file = attohttpc::MultipartFile::new(&asset_filename, &asset_file_contents);
+			let multipart = attohttpc::MultipartBuilder::new()
+				.with_file(file)
+				.build()
+				.expect(&("creating multipart file for asset: ".to_owned() + &asset_filename));
+
 			let res = auth_request(attohttpc::post(&assets_api_url), &api_key)
-				.header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+				.header(header::CONTENT_TYPE, "multipart/form-data")
 				.param("name", &asset_filename)
-				.bytes(&asset_file_contents)
+				.body(multipart)
 				.send()
 				.expect(&("uploading failed for asset ".to_owned() + &asset_filename));
 
