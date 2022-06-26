@@ -118,13 +118,12 @@ fn main() {
 	.send()
 	.expect("release creation request failed");
 
-	if !res.is_success() {
-		panic!(
-			"release creation request wasn't a success with status {} and response: {:?}",
-			res.status(),
-			res.json::<Value>()
-		);
-	}
+	assert!(
+		res.is_success(),
+		"release creation request wasn't a success with status {} and response: {:?}",
+		res.status(),
+		res.json::<Value>()
+	);
 
 	let res_json: ReleaseCreatedResponse = res.json().expect("parsing release creation response json failed");
 	println!("Successfully created release: {}", &res_json.url);
@@ -139,7 +138,7 @@ fn main() {
 
 		// Process globs into all paths
 		for asset_glob in asset_globs.split(',') {
-			let paths = glob(&asset_glob).expect(&(GLOB_FAILED.to_owned() + asset_glob));
+			let paths = glob(asset_glob).expect(&(GLOB_FAILED.to_owned() + asset_glob));
 			for path in paths {
 				let filepath = path.expect(&(READING_FILE_FAILED.to_owned() + asset_glob));
 				if filepath.is_file() {
@@ -172,14 +171,13 @@ fn main() {
 				.expect(&("uploading failed for asset ".to_owned() + &asset_filename));
 
 			// Even a single failed asset will fail the entire step.
-			if !res.is_success() {
-				panic!(
-					"asset uploading failed for file: {} with an status {} and response: {:?}",
-					&asset_filename,
-					res.status(),
-					res.json::<Value>()
-				);
-			}
+			assert!(
+				res.is_success(),
+				"asset uploading failed for file: {} with an status {} and response: {:?}",
+				&asset_filename,
+				res.status(),
+				res.json::<Value>()
+			);
 		}
 	}
 }
