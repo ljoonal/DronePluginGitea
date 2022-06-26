@@ -1,6 +1,6 @@
 [package]
 name = "drone-plugin-gitea"
-version = "0.1.0-alpha.1"
+version = "0.1.0"
 edition = "2018"
 authors = ["ljoonal"]
 description = "A drone CI plugin to create a release on gitea and push assets to it."
